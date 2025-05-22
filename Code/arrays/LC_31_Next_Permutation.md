@@ -1,4 +1,3 @@
-Okay, here's a Markdown formatted summary of the "Next Permutation" problem and its solution, highlighting important information and key points.
 
 ---
 
