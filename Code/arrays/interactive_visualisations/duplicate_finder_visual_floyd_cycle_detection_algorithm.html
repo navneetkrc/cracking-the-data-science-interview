@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floyd's Cycle Detection - Duplicate Finder</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-size: 1.2em;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .section h2 {
+            color: #FFD700;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+        }
+        
+        .visualization {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            min-height: 200px;
+        }
+        
+        .array-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .array {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .array-cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #FFD700;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: bold;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .index {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+        
+        .value {
+            font-size: 1.2em;
+        }
+        
+        .pointer {
+            position: absolute;
+            top: -15px;
+            font-size: 0.9em;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: white;
+        }
+        
+        .slow-pointer {
+            background: #FF6B6B;
+        }
+        
+        .fast-pointer {
+            background: #4ECDC4;
+        }
+        
+        .both-pointer {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+        }
+        
+        .arrow {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2em;
+            color: #FFD700;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .explanation {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #FFD700;
+        }
+        
+        .phase {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .phase-title {
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .highlight {
+            background: rgba(255, 215, 0, 0.2);
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        
+        .step-info {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Floyd's Cycle Detection Algorithm</h1>
+        <p class="subtitle">Finding Duplicates with the Tortoise and Hare</p>
+        
+        <div class="section">
+            <h2>🎯 The Problem</h2>
+            <p>Given an array where each number points to an index, find the duplicate number. The key insight: <strong>the duplicate creates a cycle in our "linked list"</strong> because multiple numbers point to the same value.</p>
+        </div>
+        
+        <div class="section">
+            <h2>🔄 Interactive Visualization</h2>
+            <div class="array-container">
+                <div class="array" id="array"></div>
+                <div class="step-info" id="stepInfo">Click "Start Demo" to begin</div>
+            </div>
+            
+            <div class="controls">
+                <button onclick="startDemo()">Start Demo</button>
+                <button onclick="nextStep()" id="nextBtn" disabled>Next Step</button>
+                <button onclick="reset()">Reset</button>
+            </div>
+            
+            <div class="explanation" id="explanation">
+                <strong>How it works:</strong> We treat the array like a linked list where nums[i] points to index nums[i]. The duplicate number creates a cycle because multiple indices lead to the same value.
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🧠 The Algorithm Intuition</h2>
+            
+            <div class="phase">
+                <div class="phase-title">Phase 1: Detect the Cycle</div>
+                <div class="code-block">slow = nums[slow]     # Tortoise moves 1 step
+fast = nums[nums[fast]] # Hare moves 2 steps</div>
+                <p>Like the classic tortoise and hare story, the slow pointer moves one step while the fast pointer moves two steps. In a cycle, the fast pointer will eventually "lap" the slow pointer.</p>
+            </div>
+            
+            <div class="phase">
+                <div class="phase-title">Phase 2: Find the Cycle Start</div>
+                <div class="code-block">fast = nums[0]          # Reset fast to start
+while slow != fast:     # Move both at same speed
+    slow = nums[slow]
+    fast = nums[fast]</div>
+                <p>Once we detect a cycle, we reset one pointer to the start and move both at the same speed. They'll meet exactly at the start of the cycle - which is our duplicate number!</p>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🔍 Why This Works</h2>
+            <p>The mathematical proof relies on the fact that when the fast and slow pointers meet in Phase 1, the distance from the start to the cycle entrance equals the distance from the meeting point to the cycle entrance (when moving around the cycle).</p>
+            
+            <div class="explanation">
+                <strong>Key Insights:</strong>
+                <br>• The array represents a functional graph where each value points to an index
+                <br>• A duplicate number means multiple indices point to the same value
+                <br>• This creates exactly one cycle in our graph
+                <br>• The cycle entrance is the duplicate number we're looking for
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let nums = [1, 3, 4, 2, 2]; // Example array
+        let step = 0;
+        let phase = 1;
+        let slow = 0;
+        let fast = 0;
+        let isRunning = false;
+        
+        function createArray() {
+            const arrayDiv = document.getElementById('array');
+            arrayDiv.innerHTML = '';
+            
+            nums.forEach((value, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'array-cell';
+                cell.id = `cell-${index}`;
+                
+                cell.innerHTML = `
+                    <div class="index">${index}</div>
+                    <div class="value">${value}</div>
+                `;
+                
+                // Add arrow showing where this value points
+                if (value < nums.length) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'arrow';
+                    arrow.innerHTML = '↓';
+                    cell.appendChild(arrow);
+                }
+                
+                arrayDiv.appendChild(cell);
+            });
+        }
+        
+        function updatePointers() {
+            // Clear all pointers
+            document.querySelectorAll('.array-cell').forEach(cell => {
+                cell.style.background = 'rgba(255, 255, 255, 0.1)';
+                const existingPointer = cell.querySelector('.pointer');
+                if (existingPointer) {
+                    existingPointer.remove();
+                }
+            });
+            
+            // Add current pointers
+            if (slow === fast && slow !== undefined) {
+                const cell = document.getElementById(`cell-${slow}`);
+                if (cell) {
+                    const pointer = document.createElement('div');
+                    pointer.className = 'pointer both-pointer';
+                    pointer.textContent = 'BOTH';
+                    cell.appendChild(pointer);
+                    cell.style.background = 'rgba(255, 107, 107, 0.3)';
+                }
+            } else {
+                if (slow !== undefined) {
+                    const slowCell = document.getElementById(`cell-${slow}`);
+                    if (slowCell) {
+                        const pointer = document.createElement('div');
+                        pointer.className = 'pointer slow-pointer';
+                        pointer.textContent = 'SLOW';
+                        slowCell.appendChild(pointer);
+                        slowCell.style.background = 'rgba(255, 107, 107, 0.2)';
+                    }
+                }
+                
+                if (fast !== undefined) {
+                    const fastCell = document.getElementById(`cell-${fast}`);
+                    if (fastCell) {
+                        const pointer = document.createElement('div');
+                        pointer.className = 'pointer fast-pointer';
+                        pointer.textContent = 'FAST';
+                        fastCell.appendChild(pointer);
+                        fastCell.style.background = 'rgba(78, 205, 196, 0.2)';
+                    }
+                }
+            }
+        }
+        
+        function updateStepInfo(message) {
+            document.getElementById('stepInfo').innerHTML = message;
+        }
+        
+        function startDemo() {
+            reset();
+            isRunning = true;
+            slow = nums[0];
+            fast = nums[0];
+            phase = 1;
+            step = 0;
+            
+            document.getElementById('nextBtn').disabled = false;
+            updatePointers();
+            updateStepInfo(`<strong>Phase 1:</strong> Both pointers start at nums[0] = ${nums[0]}`);
+        }
+        
+        function nextStep() {
+            if (!isRunning) return;
+            
+            if (phase === 1) {
+                // Phase 1: Detect cycle
+                slow = nums[slow];
+                fast = nums[nums[fast]];
+                step++;
+                
+                updatePointers();
+                updateStepInfo(`<strong>Phase 1 - Step ${step}:</strong> Slow moves to ${slow}, Fast moves to ${fast}`);
+                
+                if (slow === fast) {
+                    phase = 2;
+                    fast = nums[0]; // Reset fast to start
+                    updateStepInfo(`<strong>Cycle detected!</strong> Now starting Phase 2. Fast pointer reset to ${fast}`);
+                }
+            } else if (phase === 2) {
+                // Phase 2: Find cycle start
+                if (slow !== fast) {
+                    slow = nums[slow];
+                    fast = nums[fast];
+                    step++;
+                    
+                    updatePointers();
+                    updateStepInfo(`<strong>Phase 2 - Step ${step}:</strong> Both move one step. Slow: ${slow}, Fast: ${fast}`);
+                    
+                    if (slow === fast) {
+                        updateStepInfo(`<strong>🎉 Found the duplicate: ${slow}</strong><br>This is where the cycle begins!`);
+                        document.getElementById('nextBtn').disabled = true;
+                        isRunning = false;
+                    }
+                }
+            }
+        }
+        
+        function reset() {
+            step = 0;
+            phase = 1;
+            slow = undefined;
+            fast = undefined;
+            isRunning = false;
+            
+            document.getElementById('nextBtn').disabled = true;
+            createArray();
+            updateStepInfo('Click "Start Demo" to begin');
+        }
+        
+        // Initialize
+        createArray();
+    </script>
+</body>
+</html>
