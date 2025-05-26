@@ -451,3 +451,50 @@ class Solution:
 2. **Binary Search Property**: The feasibility function is monotonic - if tastiness X is achievable, then all tastiness values < X are also achievable
 3. **Search Space**: We only need to search between 0 and the maximum possible difference
 ---
+
+```python
+class Solution:
+    def maximumTastiness(self, price: List[int], k: int) -> int:
+        price.sort()
+        
+        def canAchieveTastiness(target_tastiness):
+            """Check if we can select k candies with minimum difference >= target_tastiness"""
+            count = 1  # Always select the first candy
+            last_selected = price[0]
+            
+            for i in range(1, len(price)):
+                # If current candy's price is far enough from last selected
+                if price[i] - last_selected >= target_tastiness:
+                    count += 1
+                    last_selected = price[i]
+                    if count == k:
+                        return True
+            
+            return False
+        
+        # Binary search on the answer with optimized bounds
+        left = 0
+        
+        # Mathematical optimization: The maximum possible tastiness is bounded by
+        # the total price range divided by the number of gaps between k candies
+        # 
+        # Intuition: If we have k candies, there are (k-1) gaps between them.
+        # To maximize the minimum gap, we'd distribute the total range evenly.
+        # So the theoretical maximum minimum gap is: total_range / (k-1)
+
+        total_range = price[-1] - price[0]
+        right = total_range // (k-1) if k > 2 else total_range
+        
+        result = 0
+        
+        while left <= right:
+            mid = (left + right) // 2
+            
+            if canAchieveTastiness(mid):
+                result = mid  # This tastiness is achievable
+                left = mid + 1  # Try for higher tastiness
+            else:
+                right = mid - 1  # Try lower tastiness
+        
+        return result
+```
